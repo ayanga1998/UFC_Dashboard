@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget
 import sys
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -16,12 +17,13 @@ class Fighter_Data(object):
 
         self.name = name
         self.data = data
-        self.fighter_list = list(set(list(set(self.data.red_fighter))+list((set(self.data.blue_fighter)))))
+        self.fighter_list = list(set(list(set(self.data.red_fighter)) + list((set(self.data.blue_fighter)))))
         print(len(self.fighter_list))
         if self.name not in self.fighter_list:
             raise Exception(f"{self.name} is not a fighter listed in the database")
 
         self.fight_data = self.get_fight_data()
+        self.fighter_career_stats = self.career_data()
 
     def get_fight_data(self):
         mask = (self.data['red_fighter'] == self.name) | (self.data['blue_fighter'] == self.name)
@@ -46,12 +48,21 @@ class Fighter_Data(object):
         fighter_red = fighter.loc[red_mask, red_cols].rename(red_to_none, axis=1)
 
         fighter_df = pd.concat([fighter_blue, fighter_red]).sort_index()
+
+        fighter_df['Win'] = np.where(fighter_df['result'] == self.name, 1, 0)
+        fighter_df['Draw'] = np.where(fighter_df.result == 'D', 1, 0)
+        fighter_df['Loss'] = np.where(fighter_df.result != self.name, 1, 0)
         return fighter_df
 
-
+    def career_data(self):
+        strikes = ['kd', 'ss_landed', 'ts_landed', 'head_landed', 'body_landed', 'leg_landed',
+                   'dist_landed', 'clinch_landed', 'grnd_landed', 'rev', 'td_landed', 'ctrl_time', 'fight_time',
+                   'Win', 'Draw', 'Loss']
+        cumulative = self.fight_data.loc[:, strikes].aggregate('sum')
+        return cumulative
 
 if __name__ == "__main__":
-    UFC = Fighter_Data('Bobby Green')
+    UFC = Fighter_Data('Khabib Nurmagomedov')
     print(UFC.fight_data.columns)
 
     # plt.plot(izzy.ss_pct)
