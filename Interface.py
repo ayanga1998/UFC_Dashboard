@@ -61,9 +61,3 @@ class Fighter_Data(object):
         cumulative = self.fight_data.loc[:, strikes].aggregate('sum')
         return cumulative
 
-if __name__ == "__main__":
-    UFC = Fighter_Data('Khabib Nurmagomedov')
-    print(UFC.fight_data.columns)
-
-    # plt.plot(izzy.ss_pct)
-    # plt.show()
